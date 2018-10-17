@@ -1,116 +1,18 @@
 # -*- coding: utf-8 -*-
-__version__='0.1.1'
 """
-Created on Wed Aug 22 22:00:23 2018
-
-help from 
-ftp://ftp.ics.uci.edu/pub/centos0/ics-custom-build/BUILD/PyQt-x11-gpl-4.7.2/examples/graphicsview/diagramscene/diagramscene.py !!!!!!!!
-http://www.windel.nl/?section=pyqtdiagrameditor
-https://graphviz.gitlab.io/_pages/Documentation/TSE93.pdf
-https://www.qtcentre.org/threads/5609-Drawing-grids-efficiently-in-QGraphicsScene
-http://www.davidwdrell.net/wordpress/?page_id=46
-https://stackoverflow.com/questions/3810245/how-to-select-multiple-items-without-pressing-ctrl-key-within-qgraphicsscene#3839127
-https://stackoverflow.com/questions/32192607/how-to-use-itemchange-from-qgraphicsitem-in-qt/32198716#32198716
-https://github.com/cb109/qtnodes
-https://het.as.utexas.edu/HET/Software/html/graphicsview-elasticnodes.html
-https://www.qtcentre.org/threads/43649-QGraphicsScene-is-SLOW-with-a-lot-of-items-!
-https://adared.ch/qnodeseditor-qt-nodesports-based-data-processing-flow-editor/
-https://stackoverflow.com/questions/20771965/qt-graph-drawing
-http://blog.tjwakeham.com/pyqt4-node-editor/
-https://github.com/rochus/qt5-node-editor
-http://austinjbaker.com/node-editor-prototype
-https://github.com/EricTRocks/pyflowgraph
-
-0.
-    0.2 - started logging
-    0.3 - edges work & track
-    1.0 - added first few special nodes, added (buggy) arrow, process flow substantiated, lots of modularization
-    1.1 - changeable node graphic, graphicPancakes working & ugly, skeleton for terminal hover events
-
-
-
-TODO:
-    some widgets can be overridden by inputs
-    FFT node
-    Usable w/o gui
-    Make signal its own object? - helpful to trace
-    upload to github
-    constrainable lengths (blegh) - rigidity value 0-1 as some half tangent fn
-    Datasources as Ngons? Torminals on points as distinct dims of data 
-    create new connected node on click 
-    hold on edge/terminal adjusts/dels? connections
-    selectbox
-    have startup net (customizable)
-    Node types - 
-        Circles - 
-            "scoots over" as more terminals added
-        Polygons
-            -fixed # of nodes
-            -sources?
-        Boxes (rounded)
-            clear distinction between in/out
-        
-    
-    ctrl T on several nodes makes total connection (undir?)
-    Drag & drop for nodes - long press to move, short to highlight, doubleclick to edit?
-    Edges go from term(interface) to term, not nodes to nodes
-    place nodes from forces/etc
-    generate net from adjmat
-    order of selection
-    sub?terminal STDev 
-    encode strength in size/aspect in color
-    simplex coloring - low opacity & stacks
-    clean up code
-    max num of nodes able to b added (1000? - editable)
-    select two nodes then key combo to add edge between em  (j?e?f?f?)
-    keycombo for new nodes (a?shifta?)
-    deleteable/breakable (x)
-    "show network metrics"
-    processing nodes
-        start @ sources (data/topological sense)
-        
-    cache (short+long?) calculated paths/subpaths to save time - need to figure out how to handle different ways of inputting new data
-    have custom "group" node as object w cache checkbox? 
-    make able to "act like singularities" for DS? 
-    
-    graphs: holoviews? 
-    
-    
-    
-------
-Each Network tracks all nodes & their connections - Animations/Edge Forces go here 
-Each Node has a fn and has a list of terminals (shortcut to list of edges)
-Each Terminal has list of edges "hooked" to` 
-Each Edge knows From/To, Signal, and effect of edge (usually none if just transmission)
-
-@todo implement bokeh for web dashboard
-@todo merge array node 
-@todo SQL nodes - graphic automatically converts on detect, SELECT, WHERE, etc nodes? if implemented then single Pancakess
-
-    #@todo fill in Pancakes sides better 
-@todo signal path makes new threads for parallelicity
-
+All the handling of window/graphicsscene events - immediately downstream of graphics
 """
+
 import math
 
 from PyQt5.QtWidgets import * #GUI (Graphical User Interface) library
 from PyQt5 import QtGui, QtCore
 #from pyqtgraph import flowchart
-from .Nodes import *
-
 import numpy as np
 import sys
-from OHLib import *
-#
+import .Graphics
 
-##################################################
-        #SPECIFIC NODE TYPES:
-        #@todo implement a general handler for widget/s/
-        #@todo - put default colors here? or maybe in network. not in window tho.
-#@todo make sure everything plays nice with pandas - maybe numpy?
-defnode=graphicNode#@todo better way of doing this
 
-##################################################
 class netWindow(QMainWindow):
     def __init__(self): 
         super(netWindow,self).__init__()
@@ -294,29 +196,3 @@ class netWindow(QMainWindow):
         print(label)
         pass
     #@todo flesh out deletenode
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-def netrun():
-    app=0         
-    #windthread=QtCore.QThread()
-    
-    app=QApplication(sys.argv)
-    wind=netWindow()
-    app.exec_()
-rainbow
-    
-    
-    
-    
-types=['sources','fns','restricts','categories','outputs']
-{'fns':{'meta':{},'add':{},'sub':{}},
- 'outputs':{'heatmap','scatterrel','timeline'},
- 'restricts':{'single','quotient/category','range'}}
