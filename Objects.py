@@ -2,8 +2,13 @@ from PyQt5.QtWidgets import * #GUI (Graphical User Interface) library
 from PyQt5 import QtGui, QtCore
 
 class Network(object):#@todo able to save snapshot of page layout, make master controller which coordinates global stuff - nodes only know themselves and their terminals/edges, network knows bigger picture stuff
-    def __init__(self):
-        pass
+    def __init__(self,initialState=None):
+        if initialState is not None:
+            self.loadNet(initialState)
+        else:
+            self.nodes=dict()
+            self.edges=dict()
+
     def saveNet(self):
         pass
     def loadNet(self):
@@ -18,6 +23,18 @@ class Network(object):#@todo able to save snapshot of page layout, make master c
         
     def transpose(self):
         pass
+    
+    def generateAdjMat(self,root=0):
+        n=len(self.nodes)
+        A=np.zeros((n,n))
+        for i in self.edges.keys():
+            ii=(i[0]-1,i[1]-1)
+            A[ii]=1
+            if self.undir:
+                A[ii[1],ii[0]]=1
+        return A
+            
+   
     
 class Node(object):#baseclass for nodes - "dumb" & doesn't know who is connected to/[what type of edge (maybe bad idea?)], that's edges job
     #@todo define trigger here?
