@@ -1,17 +1,54 @@
 from PyQt5.QtWidgets import * #GUI (Graphical User Interface) library
 from PyQt5 import QtGui, QtCore
 
+
 class Network(object):#@todo able to save snapshot of page layout, make master controller which coordinates global stuff - nodes only know themselves and their terminals/edges, network knows bigger picture stuff
-    def __init__(self,initialState=None):
+    #@todo have dict connecting each baseobj to its graphicsobj if not headless - network is interface
+    def __init__(self,initialState=None,nodes=None):
         if initialState is not None:
             self.loadNet(initialState)
         else:
             self.nodes=dict()
             self.edges=dict()
-
+        self.availableNodes=nodes
+#        for i in 
+    def createNode(self,nodetype='Node',label=None,defloc=None,color='red'):
+        if label is None:
+            label=len(self.nodes)+1
+#            print(label)
+        self.nodes[label]=getattr(Nodes,nodetype)(name=label)
+        return self.nodes[label]
     def saveNet(self):
         pass
     def loadNet(self):
+        pass
+    def connectNodes(self,nfrom=1,nto=2):
+        if len(self.scene.selectedItems())==2:#if selection is obvious  ---- can do smth w selectionChanged to figure out order selected for from/to
+            nfrom,nto=[i.name for i in self.scene.selectedItems()]
+        narr=(nfrom,nto)
+        nd={'from':self.nodes[nfrom],'to':self.nodes[nto]}
+#        xto,yto=senarr=ndlf.nodes[nto].gnode.pos()
+#        xfrom,yfrom=self.nodes[nfrom].gnode.pos()
+        #@todo clean up this code
+        if narr in self.edges.keys():#checks if refers right
+#        
+            self.edges[narr].updatePos()
+#            self.scene.removeItem(self.edges[narr])
+            edge=self.edges[narr]
+        else:#@todo clean up this fn
+            edgeobj=Edge(self.nodes[nfrom],self.nodes[nto])
+            edge=arrowEdge(self.nodes[nfrom].gnode.x()+self.nodes[nfrom].sz['x'],self.nodes[nfrom].gnode.y()+self.nodes[nfrom].sz['y'],self.nodes[nto].gnode.x()+self.nodes[nfrom].sz['x'],self.nodes[nto].gnode.y()+self.nodes[nfrom].sz['y'],narr=nd,edgeobj=edgeobj)
+#        edge.setParentItem(self.nodes[1].gnode)
+        self.edges[(nfrom,nto)]=edge
+        self.nodes[nfrom].edges[nto]=edge
+#        rpg
+        self.nodes[nto].edges[nfrom]=edge
+        
+        self.scene.addItem(edge)
+#        print(self.edges)
+#        print(self.generateAdjMat())
+       
+    def breakConnect(self,nfrom,nto):
         pass
     def forceModel(self,typ):    #do stuff like spring models here
 
@@ -44,7 +81,8 @@ class Node(object):#baseclass for nodes - "dumb" & doesn't know who is connected
 #        self.slots=dict()
         self.widget=widget
         self.nterm=nterm
-        
+        self.graphics={'graphicobj':'graphicNode',
+                       'btnlabel':''}
 #        self.qt=QGraphicsRectItem
         self.name=name
         self.graphic=graphic
@@ -56,6 +94,8 @@ class Node(object):#baseclass for nodes - "dumb" & doesn't know who is connected
             self.fn=fn
         else:
             self.fn=defaultfn
+    def nodeReady(self,*a,**kw):
+        print(kw)
     def preprocess(self,values=None):
         pass
     @property
@@ -65,7 +105,10 @@ class Node(object):#baseclass for nodes - "dumb" & doesn't know who is connected
     @property
     def terminal(self):
         pass
-    
+    def changeGraphics(self,vals):
+        for i in vals.keys():
+            self.graphics[i]=vals
+        #@todo update graphics accordingly
     def retqt(self,loc,color='red'):
         if type(loc)==dict:
             lx,ly=loc['x'],loc['y']
@@ -127,6 +170,7 @@ class Node(object):#baseclass for nodes - "dumb" & doesn't know who is connected
                         raise
                     
             self.neighbors[i]=ft[i]
+            
 class Terminal(object):
     def __init__(self,*args,parent=None,prop=None,node=None,name=None,loc=None):
         self.name=name

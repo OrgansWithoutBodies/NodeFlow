@@ -10,12 +10,15 @@ from PyQt5 import QtGui, QtCore
 #from pyqtgraph import flowchart
 import numpy as np
 import sys
-import .Graphics
+
+from OHLib import *
+import Graphics
 
 
 class netWindow(QMainWindow):
-    def __init__(self): 
-        super(netWindow,self).__init__()
+    def __init__(self,net,**kw): 
+        super(netWindow,self).__init__(**kw)
+        self.net=net
         self.wind=QWidget()
         self.setCentralWidget(self.wind)
         self.layout=QGridLayout()
@@ -77,7 +80,7 @@ class netWindow(QMainWindow):
         self.toolbox=QToolBox()
 #        self.toolbox.setMinimumWidth()
         self.nodes=dict()
-        def updatenodefn(i,*args):
+        def updatenodefn(i,*args):#updates position of all edges connected to this node
          
 #            print(self.nodes[i].edges.keys())
             for j in self.nodes[i].edges.keys():
@@ -115,19 +118,20 @@ class netWindow(QMainWindow):
             #@todo make a "repeat action" per group?
             #add all buttons here
             #{groupname:{buttonname:fn}}
-        btndict={'inputs':{'inputbox':lambda:self.createNode(nodetype=InputNode,color="#aaaaaa"),
-                          'source':lambda:self.createNode(nodetype=SourceNode,color="#000000")},
-                 'filters':{'SQL':lambda:self.createNode(nodetype=SQLCommandNode,color='Red'),
-                            'split':lambda:self.createNode(nodetype=SplitNode,color="fuchsia")},
-                 'math':{'+':lambda:self.createNode(nodetype=AdditionNode,color="#ffffff"),
-                         '-':lambda:self.createNode(nodetype=SubtractionNode,color="cyan"),
-                         'average':lambda:self.createNode(nodetype=AverageNode,color="#987654")},
+#        for n in self.net.availableNodes:
+        btndict={'inputs':{'inputbox':lambda:self.createNode(nodetype='InputNode',color="#aaaaaa"),
+                          'source':lambda:self.createNode(nodetype='SourceNode',color="#000000")},
+                 'filters':{'SQL':lambda:self.createNode(nodetype='SQLCommandNode',color='Red'),
+                            'split':lambda:self.createNode(nodetype='SplitNode',color="fuchsia")},
+                 'math':{'+':lambda:self.createNode(nodetype='AdditionNode',color="#ffffff"),
+                         '-':lambda:self.createNode(nodetype='SubtractionNode',color="cyan"),
+                         'average':lambda:self.createNode(nodetype='AverageNode',color="#987654")},
                  'basics':{'node':lambda:self.createNode(color=rainbow[len(self.nodes)%len(rainbow)]),
-                           'edge':lambda:self.createConnect(),
+                           'edge':lambda:self.connectNodes(),
                            'terminal':lambda:self.scene.selectedItems()[0].nodeobj.createTerminal()},
                  'utils':{'delete':lambda:self.deleteNode(self.scene.selectedItems()[0].nodeobj.name),
                           'flip':lambda: self.scene.selectedItems()[0].flipEdge()},
-                 'outputs':{'print':lambda:self.createNode(nodetype=PrintNode,color="Pink")},
+                 'outputs':{'print':lambda:self.createNode(nodetype='PrintNode',color="Pink")},
                 'SQL':{},
                 'arraytools':{},
                 'HoloViews tools':{},#@todo show as tree-view if somehow is indicated w parent
@@ -137,23 +141,12 @@ class netWindow(QMainWindow):
                 addBtn(grp=g,text=t,fn=btndict[g][t])
         self.layout.addWidget(buttgrp)
 #        
-    def generateAdjMat(self,root=0):
-        n=len(self.nodes)
-        A=np.zeros((n,n))
-        for i in self.edges.keys():
-            ii=(i[0]-1,i[1]-1)
-            A[ii]=1
-            if self.undir:
-                A[ii[1],ii[0]]=1
-        return A
-            
-   
-    def createNode(self,nodetype=Node,label=None,defloc=None,color='red'):
+    
+   #@todo make this syntax less confusing wrt here vs Network attributes - drawNode?
+    def createNode(self,label=None,defloc=None,color='red',**kw):
+        self.nodes[label]=self.net.createNode(label=label,**kw)#creates actual node object which then gets rendered
         
-        if label is None:
-            label=len(self.nodes)+1
-#            print(label)
-        self.nodes[label]=nodetype(name=label)
+#        self.nodes[label]=nodetype(name=label)
         r=self.nodes[label].retqt(loc=(10,10))
         if self.nodes[label].widget is not None:
             proxy=QGraphicsProxyWidget(r)
@@ -166,6 +159,7 @@ class netWindow(QMainWindow):
 #        print(self.generateAdjMat())
         
     def createConnect(self,nfrom=1,nto=2):
+#        self.net.connectNodes()
         if len(self.scene.selectedItems())==2:#if selection is obvious  ---- can do smth w selectionChanged to figure out order selected for from/to
             nfrom,nto=[i.name for i in self.scene.selectedItems()]
         narr=(nfrom,nto)

@@ -1,0 +1,57 @@
+make .GitIgnore file
+get connections/module structure all working
+
+    some widgets can be overridden by inputs
+    FFT node
+    Usable w/o gui
+    Make signal its own object? - helpful to trace
+    upload to github
+    constrainable lengths (blegh) - rigidity value 0-1 as some half tangent fn
+    Datasources as Ngons? Torminals on points as distinct dims of data 
+    create new connected node on click 
+    hold on edge/terminal adjusts/dels? connections
+    selectbox
+    have startup net (customizable)
+    Node types - 
+        Circles - 
+            "scoots over" as more terminals added
+        Polygons
+            -fixed # of nodes
+            -sources?
+        Boxes (rounded)
+            clear distinction between in/out
+        
+    
+    ctrl T on several nodes makes total connection (undir?)
+    Drag & drop for nodes - long press to move, short to highlight, doubleclick to edit?
+    Edges go from term(interface) to term, not nodes to nodes
+    place nodes from forces/etc
+    generate net from adjmat
+    order of selection
+    sub?terminal STDev 
+    encode strength in size/aspect in color
+    simplex coloring - low opacity & stacks
+    clean up code
+    max num of nodes able to b added (1000? - editable)
+    select two nodes then key combo to add edge between em  (j?e?f?f?)
+    keycombo for new nodes (a?shifta?)
+    deleteable/breakable (x)
+    "show network metrics"
+    processing nodes
+        start @ sources (data/topological sense)
+        
+    cache (short+long?) calculated paths/subpaths to save time - need to figure out how to handle different ways of inputting new data
+    have custom "group" node as object w cache checkbox? 
+    make able to "act like singularities" for DS? 
+    
+    graphs: holoviews? 
+    
+    
+    
+    
+@todo implement bokeh for web dashboard
+@todo merge array node 
+@todo SQL nodes - graphic automatically converts on detect, SELECT, WHERE, etc nodes? if implemented then single Pancakess
+
+    #@todo fill in Pancakes sides better 
+@todo signal path makes new threads for parallelicity

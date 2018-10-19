@@ -1,0 +1,18 @@
+
+help from 
+ftp://ftp.ics.uci.edu/pub/centos0/ics-custom-build/BUILD/PyQt-x11-gpl-4.7.2/examples/graphicsview/diagramscene/diagramscene.py !!!!!!!!
+http://www.windel.nl/?section=pyqtdiagrameditor
+https://graphviz.gitlab.io/_pages/Documentation/TSE93.pdf
+https://www.qtcentre.org/threads/5609-Drawing-grids-efficiently-in-QGraphicsScene
+http://www.davidwdrell.net/wordpress/?page_id=46
+https://stackoverflow.com/questions/3810245/how-to-select-multiple-items-without-pressing-ctrl-key-within-qgraphicsscene#3839127
+https://stackoverflow.com/questions/32192607/how-to-use-itemchange-from-qgraphicsitem-in-qt/32198716#32198716
+https://github.com/cb109/qtnodes
+https://het.as.utexas.edu/HET/Software/html/graphicsview-elasticnodes.html
+https://www.qtcentre.org/threads/43649-QGraphicsScene-is-SLOW-with-a-lot-of-items-!
+https://adared.ch/qnodeseditor-qt-nodesports-based-data-processing-flow-editor/
+https://stackoverflow.com/questions/20771965/qt-graph-drawing
+http://blog.tjwakeham.com/pyqt4-node-editor/
+https://github.com/rochus/qt5-node-editor
+http://austinjbaker.com/node-editor-prototype
+https://github.com/EricTRocks/pyflowgraph
