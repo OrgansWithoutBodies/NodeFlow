@@ -10,9 +10,10 @@ import math
 from OHLib import *
 
 from PyQt5.QtWidgets import * 
-
+import PyQt5.QtCore as QtCore#@todo make non-reliant on qt
 import Graphics
 import Objects
+#from Objects import Node
 #import .Base
 # btndict={'inputs':{'inputbox':lambda:self.createNode(nodetype='InputNode',color="#aaaaaa"),
 #                          'source':lambda:self.createNode(nodetype='SourceNode',color="#000000")},
@@ -32,7 +33,107 @@ import Objects
 #                'HoloViews tools':{},#@todo show as tree-view if somehow is indicated w parent
 #                }#@todo make able to check if selected object(s?) are edges before initiating flip
 #        
-Node=Objects.Node
+#Node=Objects.Node
+#
+class Node(object):#baseclass for nodes - "dumb" & doesn't know who is connected to/[what type of edge (maybe bad idea?)], that's edges job
+    #@todo define trigger here?
+    def __str__(self):
+        return str(self.__class__.__name__)+' '+str(self.name) #makes able to refer to node as "{Nodetype} {integer (unless name is otherwise changed)}" - ie "PrintNode 3" "PrintNode 5" "InputNode 9" ...- useful for debugging 
+    def __init__(self,name,sz={'x':50,'y':50},nterm=10,slotless=False,fn=None,widget=None,graphic=None):
+#        self.slots=dict()
+        self.widget=widget
+        self.nterm=nterm
+        self.graphics={'graphicobj':'graphicNode',
+                       'btnlabel':''}
+#        self.qt=QGraphicsRectItem
+        self.name=name
+        self.graphic=graphic
+        self.sz=sz
+        self.edges=dict()
+        self.terminals=dict({'in':dict(),'out':dict()})#@todo make this the way to decide direction from node?b 
+        defaultfn=lambda x:x#output is input
+        if fn is not None:
+            self.fn=fn
+        else:
+            self.fn=defaultfn
+    def nodeReady(self,*a,**kw):
+        print(kw)
+    def preprocess(self,values=None):
+        pass
+    @property
+    def anchorpoint(self):#returns center coord, created when graphicnode is created maybe?
+        pass
+#        self.addNeighbors()
+    @property
+    def terminal(self):
+        pass
+    def addGraphics(self,vals):
+        for i in vals.keys():
+            self.graphics[i]=vals
+        #@todo update graphics accordingly
+    def retqt(self,loc,color='red'):
+        if type(loc)==dict:
+            lx,ly=loc['x'],loc['y']
+        elif type(loc)==list or type(loc)==tuple:
+            lx,ly=loc
+        if self.graphic is None:
+            self.graphic=Graphics.graphicNode
+        self.gnode=self.graphic(lx,ly,self.sz['x'],self.sz['y'],name=self.name,node=self)
+        
+        self.createTerminal()
+#        self.createTerminal()
+#        self.gnode.mouseReleaseEvent=lambda i:print(i.lastPos(),'test')
+        return self.gnode
+    def createTerminal(self,name='',loc=None,typ='out'):#@todo figure out if should refe rby loc or name
+        #terminal sz is 10, figure out math based on nodesize
+        #@todo different angles/colors based on direction type
+        tsz=10
+        startangle=-math.pi/2#angle (radians) added (CCW) from 0 (bottom)
+        N=self.nterm#number of terminals per node -"hours in day"
+        if len(self.terminals[typ])<N:
+            if loc is None:
+                cloc=((self.sz['x']+tsz)/2,(self.sz['y']+tsz)/2)#center position
+                ang=(2*math.pi/N*len(self.terminals[typ]))+startangle
+                loc=(cloc[0]+(self.sz['x']+tsz)/2*math.sin(ang),cloc[1]+(self.sz['y']+tsz)/2*math.cos(ang))#ugly but works
+                print(loc)
+            self.terminals[typ][loc]=Objects.Terminal(parent=self.gnode,loc=loc)
+            self.terminals[typ][loc].gterm.setParentItem(self.gnode)
+    def setFunction(self):#@todo redundant?
+        pass
+    #RECEIVE -> PROCESS -> SEND - override process in specific to prevent nodetype from sending signal further - not good idea to override send
+    def receiveSignal(self,value=None,source=None):
+#        print(self,value)
+        print('rec '+str(value))
+        self.processSignal(value=value,source=source) 
+    def processSignal(self,value,source=None):#does necessary processing here to make signal readable - changes based on class?
+       #use function here? or just have override to avoid hassles?
+       #does this need to have default value for source?
+       #base node should just act as relay 
+#        print('base process activated') # used to debug if override is working 
+       #@todo figure out how to process signals needing more than one input
+        self.sendSignal(value)#shouldn't need to know source
+        
+    def sendSignal(self,value):
+        for e in self.edges.keys():
+            self.edges[e].edgeobj.carrySignal(self,value)
+   
+    def activateConnects(self):
+        pass
+    def addNeighbors(self,incids,outids):
+        ft={'in':incids,'out':outids}
+        for i in ft.keys():
+            
+            if type(ft[i])!=dict:
+                try: #if its sets or sm other iterable
+                    ft[i]={ii:{} for ii in ft[i]}
+                except:
+                    try:#prob number
+                        ft[i]={ft[i]:{}}
+                    except:#dunno what it is then
+                        raise
+                    
+            self.neighbors[i]=ft[i]
+     
 
 class AdditionNode(Node):
     def __init__(self,**kwargs):
@@ -97,6 +198,7 @@ class PrintNode(Node):#@todo limit to one incoming connection, no limit on outgo
         super(PrintNode,self).__init__(nterm=2,graphic=Graphics.graphicNode,widget=QLabel(size=QtCore.QSize(50,10)),**kwargs)
         self.addGraphics({'btnlabel':'Print','color':"#ffffff"})
     def processSignal(self,value,**kwargs):#overrides fn for custom behavior
+        print('incoming '+str(value))
         self.widget.setText(str(value))
         self.sendSignal(str(value))#optional?
 #        print(value,' set')
@@ -137,7 +239,7 @@ class SplitNode(Node):#@todo make each option given connect to a terminal instea
     #@returns only values from specified key, make dropdown, get preprocess working ok
 #    @processSignal
     #@todo make toggling selection refire?
-    def preprocess(self,values=None,source=None):#works with preprocess written as process
+    def processSignal(self,values=None,source=None):#works with preprocess written as process
 #        print('pre')
         if values is not None:
             for w in self.btns.values():
@@ -150,13 +252,13 @@ class SplitNode(Node):#@todo make each option given connect to a terminal instea
                 self.widget.layout().update()
 #        return processSignal(values)
 #       pass
-#    @preprocess
-    def processSignal(self,value=None,source=None):#shouldn't need to care abt source?
-#       print(value,self.widget.)
-       
-       return value
-#        return value   
-    
+##    @preprocess
+#    def processSignal(self,value=None,source=None):#shouldn't need to care abt source?
+##       print(value,self.widget.)
+#       
+#       return value
+##        return value   
+#    
     def addOption(self,text):
         self.btns[text]=QRadioButton(text)
         self.widget.layout().addWidget(self.btns[text])
@@ -181,7 +283,7 @@ class SourceNode(Node):
         self.widget.clicked.connect(lambda:self.chooseFile())
     def chooseFile(self,typ='db'):
         
-        print('clicked')
+#        print('clicked')
         temp = QFileDialog.getOpenFileName(filter = typ+" files (*."+typ+")")
         self.sourcefile=temp
         if typ=='db':
@@ -195,7 +297,7 @@ class SourceNode(Node):
     def processSQL(self,path):#redundant?
         c=sqlite3.connect(path)
         tables=c.execute("select name from sqlite_master where type='table'").fetchall()
-        print(tables)
+#        print(tables)
         self.sendSignal(tables)
 class RollingAverageNode(Node):
     def __init__(self,**kw):
@@ -203,7 +305,7 @@ class RollingAverageNode(Node):
 class ArrayNode(Node):
     pass
 class SQLCommandNode(Node):#@todo make pancake borders dependent on npan
-    def __init__(self,cmd,sourcefile=None,**kwargs):
+    def __init__(self,cmd='WHERE',sourcefile=None,**kwargs):
         def pancakefn(*args,**kwargs):#ugly but works - returns single pancake
             return Graphics.graphicPancakes(*args,**kwargs,color='blue',npan=1)
         super(SQLCommandNode,self).__init__(widget=QLabel(str(cmd)),graphic=pancakefn,**kwargs)

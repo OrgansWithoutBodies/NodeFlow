@@ -6,6 +6,7 @@ Created on Tue Oct 16 20:45:03 2018
 """
 from PyQt5 import QtGui, QtCore
 from PyQt5.QtWidgets import * #GUI (Graphical User Interface) library
+import math
 #Graphics should be kept separate from base model so can b run w/o gui  test
 ###################################################     
    
@@ -49,11 +50,11 @@ class graphicNode(QGraphicsEllipseItem):
 #@todo on select make node's pen turn dotted instead of square?
 
 class graphicEdge(QGraphicsLineItem):
-    def __init__(self,*arg,narr=None,edgeobj=None,fromobj=None,toobj=None,**kwarg):
+    def __init__(self,*arg,nodedict=None,edgeobj=None,fromobj=None,toobj=None,**kwarg):
         super(graphicEdge,self).__init__(*arg,**kwarg)
         self.edgeobj=edgeobj
-        if narr is not None:
-            self.nodes=narr
+        if nodedict is not None:
+            self.nodes=nodedict
         self.setAcceptHoverEvents(True)
 #        self.setItem
 #        self.setFlag(QGraphicsItem.ItemIsMovable, True)
@@ -72,7 +73,7 @@ class graphicEdge(QGraphicsLineItem):
 #        print(self.nodes.keys())
 #        fp=self.nodes['from'].gnode.pos()
 #        tp=self.nodes['to'].gnode.pos()
-        
+#        print(self.nodes1)
         lp=QtCore.QLineF(*(self.nodes[i].gnode.pos()+QtCore.QPointF(self.nodes[i].gnode.rect().size().height(),self.nodes[i].gnode.rect().size().width()) for i in ['from','to']))
         self.setLine(lp)
     def flipEdge(self):
@@ -233,7 +234,7 @@ class graphicPancakes(graphicNode):#used for SQL databases
 
         topcolor=QtGui.QColor(self.color['top'])
         bottcolor=QtGui.QColor(self.color['bott'])
-        print(loc,self.height,self.width,self.gap)
+#        print(loc,self.height,self.width,self.gap)
         topcirc=QGraphicsEllipseItem(loc['x'],loc['y'],self.width,self.width/self.persp)
         bottcirc=QGraphicsEllipseItem(loc['x'],loc['y']+self.height,self.width,self.width/self.persp)
 

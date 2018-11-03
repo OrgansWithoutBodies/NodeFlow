@@ -20,7 +20,7 @@ from PyQt5 import QtGui, QtCore
 #from pyqtgraph import flowchart
 import numpy as np
 import sys
-from OHLib import *
+from OHLib import * #@todo phase out reliance on OHL
 
 
 import Window

@@ -48,7 +48,7 @@ class netWindow(QMainWindow):
 #                    print(self.keylist)
                     pass
                 self.firstRelease=False
-                del self.keylist[-1]
+#                del self.keylist[-1]#dont remember what this was doing
             def drawBackground(self,painter,rect,*args):
                 pen=QtGui.QPen(QtGui.QColor('lightgray'))
                 pen.setStyle(QtCore.Qt.DotLine)
@@ -81,16 +81,15 @@ class netWindow(QMainWindow):
 #        self.toolbox.setMinimumWidth()
         self.nodes=dict()
         def updatenodefn(i,*args):#updates position of all edges connected to this node
-         
-#            print(self.nodes[i].edges.keys())
-            for j in self.nodes[i].edges.keys():
-                if (i,j) in self.edges.keys():
-                    self.edges[(i,j)].updatePos()
+#            print('test',self.nodes[i].edges)
+            for j in self.nodes[i].edges.keys():#step through all edges connected to this note
+                if (i,j) in self.net.edges.keys():#
+                    self.net.edges[(i,j)].updatePos()
 #                    print(self.edges.keys(),(j,i))
                 else:
-                    if (j,i) in self.edges.keys():
+                    if (j,i) in self.net.edges.keys():
 #                     print('test')
-                     self.edges[(j,i)].updatePos()
+                        self.net.edges[(j,i)].updatePos()
        
         self.scene.nodeMoved.connect(updatenodefn)
 #        self.scene.selectionChanged.connect(lambda:print(self.scene.selectedItems()))
@@ -127,7 +126,7 @@ class netWindow(QMainWindow):
                          '-':lambda:self.createNode(nodetype='SubtractionNode',color="cyan"),
                          'average':lambda:self.createNode(nodetype='AverageNode',color="#987654")},
                  'basics':{'node':lambda:self.createNode(color=rainbow[len(self.nodes)%len(rainbow)]),
-                           'edge':lambda:self.connectNodes(),
+                           'edge':lambda:self.createConnect(),
                            'terminal':lambda:self.scene.selectedItems()[0].nodeobj.createTerminal()},
                  'utils':{'delete':lambda:self.deleteNode(self.scene.selectedItems()[0].nodeobj.name),
                           'flip':lambda: self.scene.selectedItems()[0].flipEdge()},
@@ -144,6 +143,8 @@ class netWindow(QMainWindow):
     
    #@todo make this syntax less confusing wrt here vs Network attributes - drawNode?
     def createNode(self,label=None,defloc=None,color='red',**kw):
+        if label is None:
+            label=len(self.nodes)+1
         self.nodes[label]=self.net.createNode(label=label,**kw)#creates actual node object which then gets rendered
         
 #        self.nodes[label]=nodetype(name=label)
@@ -159,27 +160,21 @@ class netWindow(QMainWindow):
 #        print(self.generateAdjMat())
         
     def createConnect(self,nfrom=1,nto=2):
-#        self.net.connectNodes()
         if len(self.scene.selectedItems())==2:#if selection is obvious  ---- can do smth w selectionChanged to figure out order selected for from/to
             nfrom,nto=[i.name for i in self.scene.selectedItems()]
         narr=(nfrom,nto)
-        nd={'from':self.nodes[nfrom],'to':self.nodes[nto]}
+#        nd={'from':self.nodes[nfrom],'to':self.nodes[nto]}
 #        xto,yto=senarr=ndlf.nodes[nto].gnode.pos()
 #        xfrom,yfrom=self.nodes[nfrom].gnode.pos()
-        if narr in self.edges.keys():#checks if refers right
+        if narr in self.net.edges.keys():#checks if refers already
 #        
-            self.edges[narr].updatePos()
+            self.net.edges[narr].updatePos()
 #            self.scene.removeItem(self.edges[narr])
-            edge=self.edges[narr]
+            edge=self.net.edges[narr]
         else:#@todo clean up this fn
-            edgeobj=Edge(self.nodes[nfrom],self.nodes[nto])
-            edge=arrowEdge(self.nodes[nfrom].gnode.x()+self.nodes[nfrom].sz['x'],self.nodes[nfrom].gnode.y()+self.nodes[nfrom].sz['y'],self.nodes[nto].gnode.x()+self.nodes[nfrom].sz['x'],self.nodes[nto].gnode.y()+self.nodes[nfrom].sz['y'],narr=nd,edgeobj=edgeobj)
+            edge=self.net.connectNodes(nfrom,nto)
 #        edge.setParentItem(self.nodes[1].gnode)
-        self.edges[(nfrom,nto)]=edge
-        self.nodes[nfrom].edges[nto]=edge
-#        rpg
-        self.nodes[nto].edges[nfrom]=edge
-        
+           
         self.scene.addItem(edge)
 #        print(self.edges)
 #        print(self.generateAdjMat())
