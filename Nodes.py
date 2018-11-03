@@ -252,7 +252,7 @@ class SplitNode(Node):#@todo make each option given connect to a terminal instea
                 self.widget.layout().update()
 #        return processSignal(values)
 #       pass
-##    @preprocess
+##    @preprocess #@todo figure this all out
 #    def processSignal(self,value=None,source=None):#shouldn't need to care abt source?
 ##       print(value,self.widget.)
 #       
