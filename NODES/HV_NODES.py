@@ -1,4 +1,7 @@
 __version__='0.0.2'
+__meta__={'HoloViews Nodes'}
+__required__={}
+__optional__={'PANEL'}
 """
 DONE:
 0.
@@ -6,6 +9,7 @@ DONE:
             Handles weeks ok
             Histogram works, want to be able to overlay
             default data connected to right sql keys
+    0.3:    WILL moved OH nodes to own file
 FUTURE GOALS
     ~0.3:   make weeks connect more easily
     ~0.5:   Flexible SQL keys, connectable w multiple dbs at once
@@ -39,30 +43,40 @@ default layouts - ():[]:{}:||
         #Density
         #Teams
         
+    
     """
 import holoviews as hv
 import numpy as np
 import pandas as pd
 import sqlite3 as sql
-from OHLib import Timer
+#from .OHLib import Timer
 
 from bokeh.server.server import Server as bkserve
 from bokeh.models import HoverTool
 
 from holoviews.operation.datashader import datashade
 
-from Objects import Node
+try:    
+    from PANEL_NODES import *
+except:
+    pass
+
+    
+#from Nodes import Node
+Node=object
 
 
-ddir=r'/home/v/Projects/Opphouse/Data'
+
+ddir=r'/home/v/Projects/Opphouse/Data'#@
 dpath=ddir+r'/donations.db'
 tpath=ddir+r'/transactions.db'
 spath=ddir+r'/schedules.db'
 ppath=ddir+r'/products.db'
-graphpath=r'/home/v/Projects/OHSite/Website\opphouse\webapp\graphs'
-
+graphpath=r'/home/v/Projects/OHSite/Websites\opphouse\webapp\graphs'
+#HVExtension - https://holoext.readthedocs.io/
 #Stacked Curves -  hv.Area.stack(overlay) http://holoviews.org/reference/elements/matplotlib/Area.html
 #base tutorial - http://pyviz.org/tutorial/
+#change background of Bokeh interface to custom colors: http://holoviews.org/user_guide/Plotting_with_Bokeh.html#Theming - toggleable?
 #datashader - http://datashader.org/getting_started/2_Pipeline.html
 #inputs of base dims & extra (manipulable) dims - dropdown for which sorta plot
 #Spike Train  -  http://holoviews.org/user_guide/Customizing_Plots.html
@@ -70,6 +84,14 @@ graphpath=r'/home/v/Projects/OHSite/Website\opphouse\webapp\graphs'
 #overlay&Holomap - http://holoviews.org/user_guide/Building_Composite_Objects.html
 #bokeh dashboard https://towardsdatascience.com/data-visualization-with-bokeh-in-python-part-iii-a-complete-dashboard-dc6a86aa6e23
 #@todo able to choose between holomap (long wait upfront w big data) or dynamicmap (longish wait during )
+#graphs to emulate? clickable btns like this would b cool? https://datavizcatalogue.com/
+#@todo rolling averages/adjustable windows/sizes
+#@todo logarithmic scale - toggleable if PN
+#@todo spikes for each donation, item-len encoded in spike-height (optional), other value optionally encoded in color
+#@todo adjoinable spikes for timed events http://holoviews.org/reference/elements/matplotlib/Spikes.html
+#@todo windows for each employee
+#@todo tearable nodes preferences
+#@todo permisisonsNode?
 def getfft(xinp,yinp):
     
     n=len(xinp)//2
@@ -90,7 +112,7 @@ def defaultgraphs(typ='don'):
     #    makehv(data=getweekday(d),basedims=['weekday','item'],sliderdims=['value'],overlaydims=['value'],graphtype=hv.Bars,server=True)#@todo have better way of doing this
         makehv(data=weeklyitembrkdwn(d),basedims=['week','value'],sliderdims=['item'],overlaydims=['item'],server=True,graphtype=hv.Curve) #sum of item amts per week
         HVServer(catmapsankey(perc=True))
-    else:
+    elif typ=='trans':
         d=gettransdata()
         makehv(d,['Itemdesc','Quantity'],['Customer','Discount Name'],['Customer'],server=True,graphtype=hv.Points)
 def catmapsankey(N=-1,perc=False):
@@ -133,7 +155,7 @@ def getweekday(d,dkey='date',vkey='amt',itmkey='item'):#@todo have simple way of
 def linreg(x,y):
     return sp.stats.stats.linregress(x, y)
    #@todo some way to mark date column
-def groupbydatetime(d,dkey,kkey,vkey,n):#@todo splits by n days
+def groupbydatetime(d,dkey,kkey,vkey,n):#@todo splits by n days - generalized groupbyweek
     pass
    #dkey - column name of date, kkey - what to group by, vkey - column to weigh kkey, startkey - 'W','W-SUN','W-MON' - how week starts, fn - how group is aggregated
 def groupbyweek(d,dkey='date',kkey='item',vkey='amt',startkey='W-SUN',fn=sum,tidy=False):#fits better somewhere else?
@@ -198,6 +220,15 @@ sqlstrs={tpath:{'DBColumns':{'itemdesc':'Itemdesc',
 #                            JOIN DONATIONS ON DONATIONLINES.DONATIONID=DONATIONS.ID
 #                            JOIN CATEGORYMAP ON DONATIONLINES.CATEGORYID=CATEGORYMAP.ID""".format(maps[mapcats][0],nameformat)
 #    if mapcats:
+        
+        
+        
+        
+        
+        
+        
+        
+        
 def getsqldata(pathname,tbldict,N=-1,dmapcats=True,nameformat="lastname||', '||firstname"):
     tbldict.keys()
     sqlquery="SELECT {0} FROM {1} JOIN {2}".format(", ".join( tbldict['DBColumns'].keys()),tbldict['From']," JOIN ".join([" ON ".join([t,tbldict['Joins'][t]]) for t in tbldict['Joins'].keys()]))
@@ -239,9 +270,9 @@ def getdata(N=-1,mapcats=True,nameformat="lastname||', '||firstname"):
     
     d=pd.DataFrame(data[0:N],columns=['donation','item','amt','date','donor']) #handle base data
     return d
-def makehv(data=None,basedims=None,sliderdims=None,overlaydims=None,histdims=None,tooltipdims=None,dshade=False,graphtype=hv.Scatter,rendertype='bokeh',N=-1,server=False,adj=None,sz=(1000,500)):
+def makehv(data=None,basedims=None,sliderdims=None,overlaydims=None,histdims=None,tooltipdims=None,dshade=False,graphtype=hv.Scatter,rendertype='bokeh',N=-1,server=False,adj=None,sz=(1000,500),tab=False):
     #@todo have adjoin choices clear
-    hv.extension(rendertype)
+    hv.extension(rendertype,logo=False)
     #@todo optional if maps to base categories or categorymap
     #@todo customizable name format
     if data is None:
@@ -272,8 +303,15 @@ def makehv(data=None,basedims=None,sliderdims=None,overlaydims=None,histdims=Non
         tbl=hv.Dataset(d)
 #        vdims=list(set(sliderdims).union(set(histdims)).union(set(overlaydims)))
 #        print(vdims)
+        
         h=hv.HoloMap(tbl.to(graphtype,kdims=basedims,vdims=sliderdims,groupby=sliderdims))
-##        print(h.keys())
+        if tab & pn_available:
+#            h=pnTableTab(tbl,graphtype=graphtype,kdims=basedims,vdims=sliderdims,groupby=sliderdims)
+            
+            t=pnTableTab(tbl,h,graphtype.__name__)
+            print(t)
+            return h
+        
         if dshade:
             h=datashade(h)
         if overlaydims is not None:
@@ -303,7 +341,7 @@ def makehv(data=None,basedims=None,sliderdims=None,overlaydims=None,histdims=Non
 #    print(hover)
     
     #options
-    #@todo have better flexible way of doing styles
+    #@todo have better flexible way of doing styles - .options() probably
     hv.util.opts(graphtype.__name__+' [tools=["hover","lasso_select"] colorbar=True width={0} height={1}] (alpha=0.6,muted_alpha=0.01,size=5)'.format(sz[0],sz[1]))
 #    hv.util.opts('Histogram (alpha=0.3)')
     
@@ -311,7 +349,7 @@ def makehv(data=None,basedims=None,sliderdims=None,overlaydims=None,histdims=Non
 ##        %%opts NdOverlay [width=600 legend_position='right']
 ##        print(fs(overlaydims[0]))
 #        h.overlay(dims['amt'])
-    #option to change view to table 
+    
    #mode='server' #in renderer instance
 #   @todo tweak changeable rendertype for if outputting to webserver (bokeh) or qt (matplotlib)
     if server:
@@ -323,6 +361,13 @@ def makehv(data=None,basedims=None,sliderdims=None,overlaydims=None,histdims=Non
 #        pass#just return a png/pdf/smth
 #    
 #makehv(['date','item'],['donor','amt'],['amt'],graphtype=hv.Points,server=True)
+def Serveapp(app):
+    s=bkserve({'/':app},port=0)
+    s.start()
+    s.show('/')
+def Servedmap(renderer,dmap):
+    server=renderer.app(dmap,show=True,new_window=True)
+    return server
 
 def HVServer(hvobj,rendertype='bokeh',instance=None):
     r=hv.renderer(rendertype)
@@ -331,23 +376,25 @@ def HVServer(hvobj,rendertype='bokeh',instance=None):
     doc=r.app(hvobj)
 #        doc=r.server_doc(dh)
     doc.title='test'
-    s=bkserve({'/':doc},port=0)
-    s.start()
-    s.show('/')
+    Serveapp(doc)
+
 
 #HV NODES HERE 
 #@todo optional background grid
 #
+class HVStreamNode(Node):
+    pass#@todo
 class HVAdjoinNode(Node):#
-    pass
+    pass#@todo
 class HVGraphNode(Node):
     #inputs:
-    pass
+    pass#@todo
 class HVOverlayNode(Node):#redundant - specified by graph?
+    pass#@todo
+class HVBackendNode(Node):#Whatever options 
     pass
-
 class HVBokehServerNode(Node):#name too big?
-    pass
+    pass#@todo
 class HVStyleNode(Node):
     def __init__(self,**kw):
         styledict={#available styles - @todo make sure each of these are integrated with & w/o values
@@ -358,6 +405,9 @@ class HVStyleNode(Node):
                 'muted_alpha':None,
                 'size':None,
                 'colors':[],
+                'colorbar':False,
+                'xaxis':True,
+                'yaxis':True,
                 'shapes':[],#better as None?
                 'cmap':None,
                 }

@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """
+shamelessly steal from here: http://www.brianlinkletter.com/open-source-network-simulators/
 
+"CatQuot"
 """
 #@todo "Quotient" groups
 import numpy as np
@@ -13,6 +15,7 @@ from PyQt5.QtWidgets import *
 import PyQt5.QtCore as QtCore#@todo make non-reliant on qt
 import Graphics
 import Objects
+#@todo base nodes chained together can run a game of life 
 #from Objects import Node
 #import .Base
 # btndict={'inputs':{'inputbox':lambda:self.createNode(nodetype='InputNode',color="#aaaaaa"),
@@ -133,7 +136,7 @@ class Node(object):#baseclass for nodes - "dumb" & doesn't know who is connected
                         raise
                     
             self.neighbors[i]=ft[i]
-     
+
 
 class AdditionNode(Node):
     def __init__(self,**kwargs):
@@ -342,7 +345,7 @@ class HoloviewGraphNode(Node):
         #outgoing terminals: layout object (bokeh/matplotlib) - connect to endpoint
 class SliceNode(Node):#breaks data into quotients based on some attribute (date (breaks down into custom len), item, donor, whatever)
     pass
-class GroupNode(Node):
+class GroupNode(Node):#@todo implement tearoff as groups - over time nodes "flow" together (NodeMelt?)
     pass
 class EndpointNode(Node):#outputs to some other process - JSON?
     def __init__(self,**kwargs):

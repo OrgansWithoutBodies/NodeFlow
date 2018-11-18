@@ -3,7 +3,7 @@ from PyQt5 import QtGui, QtCore
 
 import Nodes
 import Graphics
-
+#@todo have edges w configurable behavior (packet filters in gns3)
 class Network(object):#@todo able to save snapshot of page layout, make master controller which coordinates global stuff - nodes only know themselves and their terminals/edges, network knows bigger picture stuff
     #@todo have dict connecting each baseobj to its graphicsobj if not headless - network is interface
     def __init__(self,initialState=None,nodes=None):

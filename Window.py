@@ -14,7 +14,7 @@ import sys
 from OHLib import *
 import Graphics
 
-
+#@todo box-select
 class netWindow(QMainWindow):
     def __init__(self,net,**kw): 
         super(netWindow,self).__init__(**kw)

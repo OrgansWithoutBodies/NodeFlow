@@ -26,16 +26,28 @@ from OHLib import * #@todo phase out reliance on OHL
 import Window
 import Objects
 import Nodes
-#@todo Options for frontend - React.js/Qt https://github.com/esnet/react-network-diagrams
-
-def NodeFlowRun(headless=False):#headless terminology confusing?
-    #chocjs if needs to load net 
+#@todo Options for frontend - 
+#                   D3 - https://bl.ocks.org/mbostock/4566102
+#                   React.js simulate https://github.com/esnet/react-network-diagrams
+#                   Vue.js
+#                   Bokeh? http://holoviews.org/reference/streams/bokeh/BoxEdit.html  
+                    #       http://holoviews.org/user_guide/Network_Graphs.html
+#                   QT
+#@todo implement a "pluginfinder" thing
+frontends={'QT'}#list of useable frontends only
+def NodeFlowRun(frontend):
+    #check if needs to load net 
     net=Objects.Network(nodes=Nodes)
-    if not headless:
-        windowrun(net) #better suited as net method?
+    if frontend is not None:
+        if frontend=='QT':
+            qtwindowrun(net) #better suited as net method?
+        elif frontend=='JS':
+            #JSwindowrun(net)
+            pass
+    else:
+        pass#run in headless mode
     
-    
-def windowrun(net):
+def qtwindowrun(net):
     app=0         
     #windthread=QtCore.QThread()
     
